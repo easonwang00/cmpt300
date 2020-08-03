@@ -57,6 +57,7 @@ void swap(struct Node *a, struct Node *b)
     strcpy(temp,a->name);
     strcpy(a->name,b->name);
     strcpy(b->name,temp);
+    free(temp);
 } 
 void print(struct Node* nodeList) 
 { 
