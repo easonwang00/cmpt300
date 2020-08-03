@@ -64,15 +64,15 @@ int main(int argC, char* args[])
     printf( (buffer3.st_mode & S_IXOTH) ? "x" : "-");
     printf("\n");
     // The # of HardLinks
-    printf("Number of Links: \t%ld\n",buffer3.st_nlink);
+    printf("Number of Links: \t%ld\n",(long)buffer3.st_nlink);
     // The User Name
     printf("UserID: \t\t%d\n", buffer3.st_uid);
     // The Group Name
     printf("GroupID: \t\t%d\n", buffer3.st_gid);
     // The Size of Files
-    printf("File Size: \t\t%ld bytes\n",buffer3.st_size);
+    printf("File Size: \t\t%lld bytes\n", buffer3.st_size);
     // The Date and Time of Files
-    char * time = asctime(gmtime(&(buffer3.st_mtim.tv_sec)));
+    char * time = asctime(gmtime(&(buffer3.st_mtime)));
     char month[] = {'J','a','n','\0'};
     char day[] = {'0','0','\0'};
     char hour[] = {'0','0','\0'};
@@ -99,7 +99,7 @@ int main(int argC, char* args[])
     // The File name
 
 
-    printf("File inode: \t\t%ld\n",buffer3.st_ino);
+    printf("File inode: \t\t%ld\n",(long)buffer3.st_ino);
  
 
     printf("\n\n");
