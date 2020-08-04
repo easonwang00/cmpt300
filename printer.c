@@ -72,7 +72,7 @@ static void print_stat(struct stat * input_stat)
     struct group * temp_passwd_gid = getgrgid(input_stat->st_gid);
     printf("GroupID: \t\t%s\n", temp_passwd_gid->gr_name);
     // The Size of Files
-    printf("File Size: \t\t%lld bytes\n", input_stat->st_size);
+    printf("File Size: \t\t%ld bytes\n", input_stat->st_size);
     // The Date and Time of Files
     char * time = asctime(gmtime(&(input_stat->st_mtime)));
     char month[] = {'J','a','n','\0'};
@@ -139,8 +139,9 @@ void ls_print(struct parser * input_parser, int path_num)
             }
         }
 
-        
+        closedir(buffer);
     }
+    
     // for the cases of no options
 
     // for the cases of -i

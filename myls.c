@@ -11,7 +11,7 @@
 
 #include "parser.h"
 #include "printer.h"
-
+#include "myls-0.h"
 int main(int argC, char* args[]) 
 {	/*
     printf("testing\n");
@@ -38,7 +38,11 @@ int main(int argC, char* args[])
     
     }
     */
+	// if( argC == 1 ){
+	// 	print_noArguments();
 
+	// 	return 0;
+	// }
 	//just for checking, not for submission
 	int num_of_paths;
 	struct parser * par = parse(argC, args, &num_of_paths);
