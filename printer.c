@@ -21,7 +21,7 @@ static void print_stat(struct stat * input_stat);
 
 
 // print according to the input path
-static void print_path(char * path)
+void print_path(char * path)
 {
 	char* name = path;
 	DIR * buffer = opendir(name);
@@ -109,9 +109,41 @@ static void print_stat(struct stat * input_stat)
     return;
 }
 
-void ls_print(struct parser * input_parser)
+void ls_print(struct parser * input_parser, int path_num)
 {
+    for(int i = 0; i < path_num; i++){
+        char* name = input_parser->paths[i];
+        int len_name = strlen(name);
+        DIR * buffer = opendir(name);
+        if( buffer == NULL ){
+            printf(" fail to open dir: '%s'!\n", name);
+        }
+        struct dirent *buffer2;;
+        while ((buffer2 = readdir(buffer)) != NULL) {
+            if(strcmp(buffer2->d_name, ".") != 0  && strcmp(buffer2->d_name, "..") != 0){
+                char sub_name[len_name];
+                strcpy(sub_name, name);
+                strcat(sub_name, "/");
+                strcat(sub_name, buffer2->d_name);
+                //for(int c = 0; buffer2->d_name[c] != 0; c++){
+                //    sub_name += buffer2->d_name[c];
+                //}
+                printf ("[%s]---[%s]---[%s]\n",name, sub_name, buffer2->d_name);
+
+                struct stat buffer3;          
+                if(stat(sub_name, &buffer3) < 0){
+                    printf(" fail to stat()\n");
+                }else{
+                    print_stat(&buffer3); 
+                }
+            }
+        }
+
+        
+    }
     // for the cases of no options
 
     // for the cases of -i
+
+    return;
 }

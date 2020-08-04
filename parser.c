@@ -33,29 +33,31 @@ struct parser * parse(int arg_num, char ** args, int * path_num)
     if(arg_num == 1){
         return NULL;
     }
-    for(int i = 1; i < arg_num; i++){
-        if(args[i][0] == '-'){
-            for(int j = 1; j < strlen(args[i]); j++){
-                if(args[i][j] == 'i'){
-                    index_number = true;
-                }else if(args[i][j] == 'l'){
-                    long_listing = true;
-                }else if(args[i][j] == 'R'){
-                    recursively_listing = true;
-                }else{
-                    // options input is errous
-                    *path_num = -1;
-                    printf("Options Input Error!\n");
-                    return NULL;
-                }
+    int i = 1;  
+    while(i < arg_num && args[i][0] == '-'){
+        for(int j = 1; j < strlen(args[i]); j++){
+            if(args[i][j] == 'i'){
+                index_number = true;
+            }else if(args[i][j] == 'l'){
+                long_listing = true;
+            }else if(args[i][j] == 'R'){
+                recursively_listing = true;
+            }else{
+                // options input is errous
+                *path_num = -1;
+                printf("Options Input Error!\n");
+                return NULL;
             }
-        }else{
-            if(*path_num == 0){
-                *path_num = arg_num - i;
-                paths = malloc(sizeof(char *) * (*path_num));
-            }         
-            paths[index++] = args[i]; 
         }
+        i++;
+    }
+    while(i < arg_num){
+        if(*path_num == 0){
+            *path_num = arg_num - i;
+            paths = malloc(sizeof(char *) * (*path_num));
+        }         
+        paths[index++] = args[i];
+        i++; 
     }
 
     res->index_number = index_number;

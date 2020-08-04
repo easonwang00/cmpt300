@@ -48,9 +48,8 @@ int main(int argC, char* args[])
 		printf("The # of paths is: %d\n\n", num_of_paths);
 	}
 
-	for(int i = 0; i < num_of_paths; i++){
-		//print_stat(((struct stat *)par->paths) + i);
-	}
+	ls_print(par, num_of_paths);
+	
 	
 	free(par->paths);
 	free(par);
