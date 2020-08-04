@@ -1,6 +1,6 @@
 /*
     This module is mainly for coding and debugging by printing out and checking the informtion
-    MAY NOT BE FOR SUBMISSION
+    MAY NOT SUBMIT ALL FUNCTIONS
 */
 
 
@@ -12,11 +12,16 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <time.h>
+#include <pwd.h>
+#include <grp.h>
 
 #include "printer.h"
 
+static void print_stat(struct stat * input_stat);
+
+
 // print according to the input path
-void print_inode(char * path)
+static void print_path(char * path)
 {
 	char* name = path;
 	DIR * buffer = opendir(name);
@@ -36,12 +41,13 @@ void print_inode(char * path)
     printf("---------------------------\n");
     print_stat(&buffer3);
 
+    closedir(buffer);
     return;
 }
 
 
 //print according to the input 'struct stat'
-void print_stat(struct stat * input_stat)
+static void print_stat(struct stat * input_stat)
 {
 
 	// File Permission
@@ -60,9 +66,11 @@ void print_stat(struct stat * input_stat)
     // The # of HardLinks
     printf("Number of Links: \t%ld\n",(long)input_stat->st_nlink);
     // The User Name
-    printf("UserID: \t\t%d\n", input_stat->st_uid);
+    struct passwd * temp_passwd_uid = getpwuid(input_stat->st_uid);
+    printf("UserID: \t\t%s\n", temp_passwd_uid->pw_name);
     // The Group Name
-    printf("GroupID: \t\t%d\n", input_stat->st_gid);
+    struct group * temp_passwd_gid = getgrgid(input_stat->st_gid);
+    printf("GroupID: \t\t%s\n", temp_passwd_gid->gr_name);
     // The Size of Files
     printf("File Size: \t\t%lld bytes\n", input_stat->st_size);
     // The Date and Time of Files
@@ -99,4 +107,11 @@ void print_stat(struct stat * input_stat)
     printf("\n\n");  
 
     return;
+}
+
+void ls_print(struct parser * input_parser)
+{
+    // for the cases of no options
+
+    // for the cases of -i
 }

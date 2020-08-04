@@ -7,7 +7,7 @@ struct parser {
     bool long_listing;
     bool index_number;
     bool recursive;
-    struct stat * paths;
+    char ** paths;
 };
 
 struct parser * parse(int argnum, char * args[], int * path_num);

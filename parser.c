@@ -15,7 +15,7 @@
 /*
     This function is to parse the input args, returning a pointer to 'parser' struct including:
     1. three boolean values to reflect the options 
-    2. a pointer to an array of 'stat' struct with each element belonging to a path(file or directory)
+    2. a pointer to an array of strings with each element as a path(file or directory)
     3. an int indicating the number of paths
 */
 
@@ -25,7 +25,7 @@ struct parser * parse(int arg_num, char ** args, int * path_num)
     bool index_number = false;
     bool long_listing = false;
     bool recursively_listing = false;
-    struct stat * ret;
+    char ** paths;
     int index = 0;
 
 
@@ -52,18 +52,16 @@ struct parser * parse(int arg_num, char ** args, int * path_num)
         }else{
             if(*path_num == 0){
                 *path_num = arg_num - i;
-                ret = malloc(sizeof(struct stat) * (*path_num)); // WARNING: do not forget to free it!!!
+                paths = malloc(sizeof(char *) * (*path_num));
             }         
-            if(stat(args[i], &ret[index++]) < 0){
-                printf("For %s, fail to stat()\n", args[i]);
-            }            
+            paths[index++] = args[i]; 
         }
     }
 
     res->index_number = index_number;
     res->long_listing = long_listing;
     res->recursive = recursively_listing;
-    res->paths = ret;
+    res->paths = paths;
 
     return res;
 }

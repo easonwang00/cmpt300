@@ -42,14 +42,16 @@ int main(int argC, char* args[])
 	//just for checking, not for submission
 	int num_of_paths;
 	struct parser * par = parse(argC, args, &num_of_paths);
+	//ls_print(par);
+	
 	if(par != NULL){
 		printf("The # of paths is: %d\n\n", num_of_paths);
 	}
 
 	for(int i = 0; i < num_of_paths; i++){
-		print_stat(((struct stat *)par->paths) + i);
+		//print_stat(((struct stat *)par->paths) + i);
 	}
-
+	
 	free(par->paths);
 	free(par);
 
