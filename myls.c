@@ -48,15 +48,17 @@ int main(int argC, char* args[])
 	struct parser * par = parse(argC, args, &num_of_paths);
 	//ls_print(par);
 	
-	if(par != NULL){
-		printf("The # of paths is: %d\n\n", num_of_paths);
-	}
+	//if(par != NULL){
+	//	printf("The # of paths is: %d\n\n", num_of_paths);
+	//}
 
 	ls_print(par, num_of_paths);
 	
 	
 	free(par->paths);
+    par->paths = NULL;
 	free(par);
+    par = NULL;
 
 	return 0;
 }
