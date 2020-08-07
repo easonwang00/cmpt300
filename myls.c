@@ -11,7 +11,6 @@
 
 #include "parser.h"
 #include "printer.h"
-#include "myls-0.h"
 int main(int argC, char* args[]) 
 {	/*
     printf("testing\n");

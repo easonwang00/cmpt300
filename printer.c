@@ -19,7 +19,7 @@
 #include "parser.h"
 
 //static void print_path(char * path);
-static void print_stat(struct parser * input_parser, struct stat * input_stat, char name[], int maxlen_ino);
+static void print_stat(struct parser * input_parser, struct stat * input_stat, char * name, unsigned long long max_values[]);
 static int strcicmp(char const * a, char const * b);
 static void bubblesort(char * arr_str[], int size);
 
@@ -50,19 +50,21 @@ static void print_path(char * path)
 
 
 //print according to the input 'struct stat'
-static void print_stat(struct parser * input_parser, struct stat * input_stat, char name[], int maxlen_ino)
+static void print_stat(struct parser * input_parser, struct stat * input_stat, char * name, unsigned long long max_values[])
 {
     // for option -i
-    if(input_parser->index_number){
-        long ino = (long)input_stat->st_ino;
-        int count = (ino == 0) ? 1  : (log10(ino) + 1);
-        for(int i = 0; i < maxlen_ino - count; i++){
+
+    if(input_parser->index_number && max_values[0] > 1){
+        unsigned long long ino = ((struct stat *)input_stat)->st_ino;
+        int count = (ino == 0) ? 1  : ((int)(log10(ino)) + 1);
+        int count_max = (max_values[0] == 0) ? 1  : ((int)(log10(max_values[0])) + 1);
+        for(int i = 0; i < count_max  - count; i++){
             printf(" ");
         }
-        printf("%ld ", ino);
+        printf("%lld ", ino);
     }
     // for option -l
-    if(input_parser->long_listing){
+    if(input_parser->long_listing && max_values[1] && max_values[2]){
         // File Permission
         //printf("File Permissions: \t");
         printf( (S_ISDIR(input_stat->st_mode)) ? "d" : "-");
@@ -77,7 +79,13 @@ static void print_stat(struct parser * input_parser, struct stat * input_stat, c
         printf( (input_stat->st_mode & S_IXOTH) ? "x" : "-");
         printf(" ");
         // The # of HardLinks
-        printf("%3ld ",(long)input_stat->st_nlink);
+        unsigned long long n = ((struct stat *)input_stat)->st_nlink;
+        int count = (n == 0) ? 1  : ((int)(log10(n)) + 1);
+        int count_max = (max_values[2] == 0) ? 1  : ((int)(log10(max_values[2])) + 1);
+        for(int i = 0; i <count_max  - count; i++){
+            printf(" ");
+        }
+        printf("%ld ",(long)input_stat->st_nlink);
         // The User Name
         struct passwd * temp_passwd_uid = getpwuid(input_stat->st_uid);
         printf("%s ", temp_passwd_uid->pw_name);
@@ -85,9 +93,17 @@ static void print_stat(struct parser * input_parser, struct stat * input_stat, c
         struct group * temp_passwd_gid = getgrgid(input_stat->st_gid);
         printf("%s ", temp_passwd_gid->gr_name);
         // The Size of Files
-        printf("%5lld ", input_stat->st_size);
+        unsigned long long s = ((struct stat *)input_stat)->st_size;
+        count = (s == 0) ? 1  : ((int)(log10(s)) + 1);
+        count_max = (max_values[1] == 0) ? 1  : ((int)(log10(max_values[1])) + 1);
+        //printf("max_size = %lld, max_count = %d, this_size = %lld, count = %d\n", max_values[1], count_max, s, count);
+        for(int i = 0; i <count_max  - count; i++){
+            printf(" ");
+        }
+        printf("%ld ", input_stat->st_size);
         // The Date and Time of Files
         struct tm * local_time = localtime(&(input_stat->st_mtime));
+        int year = 1900 + local_time->tm_year;
         int month = local_time->tm_mon;
         int day = local_time->tm_mday;
         int hour = local_time->tm_hour;
@@ -106,7 +122,7 @@ static void print_stat(struct parser * input_parser, struct stat * input_stat, c
             "Nov",
             "Dec"
         };
-        printf("%s %2d %02d:%02d ", months[month], day, hour, min);
+        printf("%s %2d %d %02d:%02d ", months[month], day, year, hour, min);
     }
 
     // The File name
@@ -116,6 +132,11 @@ static void print_stat(struct parser * input_parser, struct stat * input_stat, c
 
 void ls_print(struct parser * input_parser, int path_num)
 {
+    // THe three lines below are for recursively listing
+    char ** sub_dir_paths[path_num];
+    //int sub_dir_paths_nums[path_num];
+    struct parser sub_paths_parsers[path_num]; 
+
     for(int i = 0; i < path_num; i++){
         char* name = input_parser->paths[i];
         printf("%s:\n", name);
@@ -141,38 +162,58 @@ void ls_print(struct parser * input_parser, int path_num)
             }
         }
         bubblesort(sub_dir_names, sub_name_num);
-        unsigned long long max_ino = 0;
-        struct stat * buffer3 = malloc(sizeof(struct stat) * sub_name_num);
+        unsigned long long max_values[] = {0, 0, 0}; // store the largest sizes of st_ino, st_size, st_nlinks
+        struct stat buffer3[sub_name_num];
         char real_sub_dir_names[sub_name_num][1024];
-        for(int i = 0; i < sub_name_num; i++){
+        int sub_dir_count = 0; // count the number of sub_directories
+        for(int j = 0; j < sub_name_num; j++){
             char sub_name[len_name];
             strcpy(sub_name, name);
             strcat(sub_name, "/");
-            strcat(sub_name, sub_dir_names[i]);
-            strcpy((char *)(&real_sub_dir_names[i]), sub_name);
-            printf("%s -- %s\n", (char *)(&real_sub_dir_names[i]), sub_name);
-
-            if(stat((char *)(&real_sub_dir_names[i]), buffer3 + i) < 0){
-                printf(" fail to stat() in sub_dir_names[i] assignments\n");
+            strcat(sub_name, sub_dir_names[j]);
+            strcpy((char *)(&real_sub_dir_names[j]), sub_name);
+            if(stat((char *)(&real_sub_dir_names[j]), (struct stat *)(&buffer3[j])) < 0){
+                printf(" fail to stat()\n");
             }else{
-                if(max_ino < buffer3[i].st_ino){
-                    max_ino = buffer3[i].st_ino;
+                if(max_values[0] < buffer3[j].st_ino){
+                    max_values[0] = buffer3[j].st_ino;
+                }
+                if(max_values[1] < buffer3[j].st_size){
+                    max_values[1] = buffer3[j].st_size;
+                }
+                if(max_values[2] < buffer3[j].st_nlink){
+                    max_values[2] = buffer3[j].st_nlink;
+                }
+                if(buffer3[j].st_nlink > 1){
+                    sub_dir_count++; //count how many sub_dir or there are
                 }
             }                  
         }
-        for(int i = 0; i < sub_name_num; i++){
-            print_stat(input_parser, buffer3 + i, sub_dir_names[i], max_ino); 
-            free(buffer3 + i);
+        sub_dir_paths[i] = malloc(sizeof(char *) * sub_dir_count); //DO NOT FORGET TO FREE
+        int idx_for_sub_dir_paths = 0;
+        for(int k = 0; k < sub_name_num; k++){
+            print_stat(input_parser, (struct stat *)(&buffer3[k]), sub_dir_names[k], max_values); 
+            if(buffer3[k].st_nlink > 1){
+                sub_dir_paths[i][idx_for_sub_dir_paths++] = (char *)&real_sub_dir_names[k];
+            }
         }
+
+        if(input_parser->recursive){
+            sub_paths_parsers[i].index_number = input_parser->index_number;
+            sub_paths_parsers[i].long_listing = input_parser->long_listing;
+            sub_paths_parsers[i].recursive = input_parser->recursive;
+            sub_paths_parsers[i].paths = sub_dir_paths[i];    
+            //sub_dir_paths_nums[i] = sub_dir_count; 
+            ls_print(&sub_paths_parsers[i], sub_dir_count);
+            free(sub_paths_parsers[i].paths);
+            sub_paths_parsers[i].paths = NULL;            
+        }
+        
         closedir(buffer);
         if(i < path_num - 1){
             printf("\n\n");
         }
     }
-    
-    // for the cases of no options
-
-    // for the cases of -i
 
     return;
 }
